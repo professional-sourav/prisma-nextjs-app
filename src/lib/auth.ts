@@ -1,7 +1,9 @@
 "use server"
 
-import {UserLoginFormSate} from "../../types/user";
+import {User, UserLoginFormSate} from "../../types/user";
 import {redirect} from "next/navigation";
+import {loginUser} from "@/actions/auth-actions";
+import {cookies} from "next/headers";
 
 export async function handleLoginSubmit(
     prevState: UserLoginFormSate,
@@ -12,11 +14,11 @@ export async function handleLoginSubmit(
 
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
-    const rememberMe = formData.get('remember-me');
-    const errors: UserLoginFormSate['errors'] = prevState.errors || { email: '', password: '' };
+    const errors: UserLoginFormSate['errors'] = prevState.errors || { email: '', password: '', invalidAuth: '' };
 
-    console.log({ email, password, rememberMe });
+    console.log({ email, password });
 
+    // Validation
     if (!email) {
         errors.email = 'Email is required'
     }
@@ -31,5 +33,31 @@ export async function handleLoginSubmit(
         }
     }
 
+    // Authentication
+    try {
+        const user: User = await loginUser({ email, password });
+        console.log("User found:", user);
+
+        // Set cookie
+        (await cookies()).set('user', JSON.stringify(user), {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 60 * 60 * 24 * 30,
+        });
+
+        console.log("User logged in successfully, redirecting...");
+
+    } catch (error) {
+        console.log("Login failed:", error);
+        return {
+            errors: {
+                email: '',
+                password: '',
+                invalidAuth: 'Invalid email or password'
+            }
+        }
+    }
+
+    // Redirect outside of try-catch to avoid intercepting the redirect error
     redirect('/dashboard');
 }
