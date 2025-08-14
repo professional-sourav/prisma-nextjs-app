@@ -12,6 +12,12 @@ export type UserLogin = {
     password: string,
 }
 
+export type UserInfo = {
+    id: string,
+    email: string,
+    name?: string | null,
+}
+
 export type UserLoginFormSate = {
     errors: {
         email: string,

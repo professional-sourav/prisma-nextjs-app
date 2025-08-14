@@ -1,5 +1,9 @@
+"use server"
+
 import {User, UserLogin} from "../../types/user";
 import prisma from "@/lib/prisma";
+import {cookies} from "next/headers";
+import {redirect} from "next/navigation";
 
 export const loginUser = async (login: UserLogin): Promise<User> => {
 
@@ -28,3 +32,12 @@ export const loginUser = async (login: UserLogin): Promise<User> => {
         password: user.password
     } as User;
 };
+
+export const logoutUser = async () => {
+    const cookieStore = await cookies();
+    await cookieStore.delete('user');
+
+    console.log("User logged out successfully");
+
+    redirect('/login');
+}

@@ -1,6 +1,6 @@
 "use server"
 
-import {User, UserLoginFormSate} from "../../types/user";
+import {User, UserInfo, UserLoginFormSate} from "../../types/user";
 import {redirect} from "next/navigation";
 import {loginUser} from "@/actions/auth-actions";
 import {cookies} from "next/headers";
@@ -60,4 +60,16 @@ export async function handleLoginSubmit(
 
     // Redirect outside of try-catch to avoid intercepting the redirect error
     redirect('/dashboard');
+}
+
+export const getUserInfoFromCookie = async (): Promise<UserInfo | null> => {
+
+    const cookieStore = await cookies();
+    const userCookie = await cookieStore.get('user');
+
+    if (!userCookie) {
+        return null;
+    }
+
+    return JSON.parse(userCookie.value) as UserInfo;
 }
